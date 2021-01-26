@@ -14,7 +14,6 @@ from PaperTrader.PaperTrader import PaperTrader
 from Strategies.Strategies import getStratIndicators, getStratIndicatorNames, strategy
 from multiprocessing import Process, Pipe, Lock
 from PaperTrader import EventListener
-from Helpers.SystemHelpers import removeJsonFromDir
 import uuid 
 from Server.WalkyTalky import WalkyTalky
 
@@ -60,7 +59,7 @@ def results(pair, candleSize, strategy, sl, tp, time, principle):
         backTest(Pair[pair], Candle(candleSize), strategy, float(sl), float(tp), principle, timeStart=Time[time], server=True, paper=session['sessionID'])
     
     print(request.args)
-    return render_template('analysis.html')
+    # return render_template('analysis.html')
 
 
 @app.route("/end", methods=['POST', 'GET'])
@@ -87,7 +86,7 @@ def updateStratParams(strategy):
     if session['type'] == "VISUALIZATION":
         global strat
         return render_template("stratupdate.html", indicators=strat.skeleton, names=strat.indicatorConstants)
-    return render_template("stratupdate.html", indicators=getStratIndicators(strategy), names=getStratIndicatorNames(strategy))
+    # return render_template("stratupdate.html", indicators=getStratIndicators(strategy), names=getStratIndicatorNames(strategy))
 
 
 @app.route("/begin", methods=['POST', 'GET'])
@@ -136,7 +135,7 @@ def backtestRoute():
         session['sessionID'] = None
         return redirect(url_for("updateStratParams", strategy=request.form['strategy']))
 
-    return render_template('backtester.html', pairs=pairs, candles=candles, times=times, strategies=strats)
+    # return render_template('backtester.html', pairs=pairs, candles=candles, times=times, strategies=strats)
 
 @app.route("/backtest/paper", methods=['POST', 'GET'])
 @auth.login_required
@@ -179,7 +178,7 @@ def startPaperTrade():
         session['timeStart'] = request.form['timeStart']
         session['type'] = "PAPERTRADE"
         return redirect(url_for("updateStratParams", strategy=request.form['strategy']))
-    return render_template('beginpapertrade.html', pairs=pairs, candles=candles, times=times, strategies=strats)
+    # return render_template('beginpapertrade.html', pairs=pairs, candles=candles, times=times, strategies=strats)
 
 
 def calculatePrinciple(sess):
@@ -225,19 +224,12 @@ def papertradeRoute():
 
 
 
-    return render_template('papertrader.html', active_sessions=active, unactive_sessions=unactive)
+    # return render_template('papertrader.html', active_sessions=active, unactive_sessions=unactive)
 
 
 if __name__ == '__main__':
-    writer = DBwriter()
-
-    try:
-        debug_status = True if os.environ.get('DEBUG') == "True" else False 
-        app.run(debug=debug_status)
-
-    except KeyboardInterrupt:
-        writer.killPaperTraderSession()
+    app.run(host="0.0.0.0", port=5000, threaded=True)
 
 
-    removeJsonFromDir()    
+
 

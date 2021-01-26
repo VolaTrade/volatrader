@@ -183,7 +183,7 @@ class TradeSession:
             typ = "[PAPERTRADE]" if self.type is SessionType.PAPERTRADE else "[LIVETRADE]"
             id = f"{typ}[{self.stratString}/{self.candleSize.value}/{self.pair.value}][{self.sessionid}] "
             msg = f"{id}\nBuying at price: {self.buyPrice}"
-            logToSlack(msg, channel=Channel.PAPERTRADER)
+            print(msg)
 
     def sellUpdate(self, candle: Dict[str, Union[str, int, float]]) -> None:
         """

@@ -9,7 +9,7 @@ run:
 gen-protos:
 	@python -m grpc_tools.protoc -I.\
 	       	--python_out=./src/generated --grpc_python_out=./src/generated \
-		./src/proto/echo.proto
+		./src/proto/*.proto
 	@echo "Generated protobufs"
 	@mv src/generated/src/proto/*.py src/generated
 

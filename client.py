@@ -4,14 +4,14 @@ import logging
 import grpc
 
 from src.commons.settings import SERVER_PORT
-from src.generated import echo_pb2
-from src.generated import echo_pb2_grpc
+from src.generated import echo_pb2, spawn_pb2
+from src.generated import echo_pb2_grpc, spawn_pb2_grpc
 
 
 def run():
     with grpc.insecure_channel(f'localhost:{SERVER_PORT}') as channel:
-        stub = echo_pb2_grpc.EchoStub(channel)
-        response = stub.Reply(echo_pb2.EchoRequest(message='Hello World!'))
+        stub = spawn_pb2_grpc.SpawnStub(channel)
+        response = stub.SpawnStrategy(spawn_pb2.SpawnRequest(sessionID="12", StrategyID="TestStrategy"))
     print("Echo client received: " + response.message)
 
 

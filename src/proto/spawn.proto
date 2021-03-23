@@ -1,0 +1,19 @@
+// spawn.proto 
+syntax = "proto3";
+package spawn; 
+
+message SpawnRequest {
+    string sessionID = 1; 
+    string StrategyID = 2;
+}
+
+message SpawnReply {
+    bool success = 1; 
+    string message = 2;
+    uint32 code = 3;
+}
+
+service Spawn {
+    rpc SpawnStrategy(SpawnRequest) returns (SpawnReply) {}
+}
+

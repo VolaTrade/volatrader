@@ -1,0 +1,13 @@
+from enum import Enum 
+
+class StatusCode(Enum):
+    OK = 0
+    CANCELLED = 1
+    UNKNOWN = 2
+    INVALID_ARGUMENT = 3
+    DEADLINE_EXCEEDED = 4 
+    NOT_FOUND = 5
+    ALREADY_EXISTS = 6
+    PERMISSION_DENIED = 7
+    RESOURCE_EXHAUSTED = 8 
+    FAILED_PRECONDITION	= 9

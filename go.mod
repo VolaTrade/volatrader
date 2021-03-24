@@ -12,4 +12,6 @@ require (
 	github.com/volatrade/currie-logs v0.0.4
 	github.com/volatrade/go-errors v1.0.4
 	github.com/volatrade/k-stats v0.0.5
+	github.com/volatrade/protobufs v1.0.0
+	google.golang.org/grpc v1.36.0
 )

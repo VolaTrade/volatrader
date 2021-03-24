@@ -14,11 +14,17 @@ import (
 
 	"github.com/volatrade/volatrader/internal/server"
 	"github.com/volatrade/volatrader/internal/service"
+	"github.com/volatrade/volatrader/internal/strategies"
 )
 
 var serviceModule = wire.NewSet(
 	service.Module,
 	wire.Bind(new(service.Service), new(*service.VolatraderService)),
+)
+
+var strategiesModule = wire.NewSet(
+	strategies.Module,
+	wire.Bind(new(strategies.Strategies), new(*strategies.StrategiesClient)),
 )
 
 func InitializeAndRun(ctx context.Context, cfg config.FilePath) (*server.Server, func(), error) {
@@ -29,9 +35,11 @@ func InitializeAndRun(ctx context.Context, cfg config.FilePath) (*server.Server,
 			config.NewServerConfig,
 			config.NewStatsConfig,
 			config.NewLoggerConfig,
+			config.NewStrategiesConfig,
 			stats.New,
 			logger.New,
 			serviceModule,
+			strategiesModule,
 			handlers.New,
 			server.New,
 		),

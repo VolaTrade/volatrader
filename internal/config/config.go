@@ -7,9 +7,11 @@ import (
 	"github.com/joho/godotenv"
 	logger "github.com/volatrade/currie-logs"
 	stats "github.com/volatrade/k-stats"
-	"github.com/volatrade/volatrader/internal/server"
 
 	"os"
+
+	"github.com/volatrade/volatrader/internal/server"
+	"github.com/volatrade/volatrader/internal/strategies"
 )
 
 //FilePath struct to be propogated through wire
@@ -17,8 +19,9 @@ type FilePath string
 
 //Config ...
 type Config struct {
-	serverConfig server.Config
-	statsConfig  stats.Config
+	serverConfig     server.Config
+	statsConfig      stats.Config
+	strategiesConfig strategies.Config
 }
 
 //NewConfig builds global config struct
@@ -46,6 +49,10 @@ func NewConfig(fileName FilePath) *Config {
 			WriteTimeout:    convertToInt(os.Getenv("SERVER_WRITE_TIMEOUT")),
 			ShutdownTimeout: convertToInt(os.Getenv("SERVER_SHUTDOWN_TIME")),
 		},
+		strategiesConfig: strategies.Config{
+			Host: os.Getenv("STRATEGIES_HOST"),
+			Port: convertToInt(os.Getenv("STRATEGIES_PORT")),
+		},
 	}
 }
 
@@ -61,6 +68,10 @@ func NewLoggerConfig(cfg *Config) *logger.Config {
 func NewStatsConfig(cfg *Config) *stats.Config {
 	log.Println("Stats config --->", cfg.statsConfig)
 	return &cfg.statsConfig
+}
+
+func NewStrategiesConfig(cfg *Config) *strategies.Config {
+	return &cfg.strategiesConfig
 }
 
 func convertToInt(str string) int {

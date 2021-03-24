@@ -7,6 +7,8 @@ import (
 
 	logger "github.com/volatrade/currie-logs"
 	stats "github.com/volatrade/k-stats"
+
+	"github.com/volatrade/volatrader/internal/strategies"
 )
 
 //Module to denote wire binding function
@@ -20,15 +22,17 @@ type Service interface {
 
 //VolatraderService struct to hold relevant inner data members and hold functions for business logic
 type VolatraderService struct {
-	logger *logger.Logger
-	kstats stats.Stats
+	logger     *logger.Logger
+	kstats     stats.Stats
+	strategies strategies.Strategies
 }
 
 //New ... constructor
-func New(logger *logger.Logger, kstats stats.Stats) *VolatraderService {
+func New(logger *logger.Logger, kstats stats.Stats, strategies strategies.Strategies) *VolatraderService {
 
 	return &VolatraderService{
-		logger: logger,
-		kstats: kstats,
+		logger:     logger,
+		kstats:     kstats,
+		strategies: strategies,
 	}
 }

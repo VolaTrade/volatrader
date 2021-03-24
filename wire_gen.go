@@ -14,6 +14,7 @@ import (
 	"github.com/volatrade/volatrader/internal/handlers"
 	"github.com/volatrade/volatrader/internal/server"
 	"github.com/volatrade/volatrader/internal/service"
+	"github.com/volatrade/volatrader/internal/strategies"
 )
 
 // Injectors from wire.go:
@@ -32,20 +33,30 @@ func InitializeAndRun(ctx context.Context, cfg config.FilePath) (*server.Server,
 		cleanup()
 		return nil, nil, err
 	}
-	volatraderService := service.New(loggerLogger, statsStats)
-	handler, err := handlers.New(volatraderService, loggerLogger)
+	strategiesConfig := config.NewStrategiesConfig(configConfig)
+	strategiesClient, cleanup3, err := strategies.New(strategiesConfig, statsStats, loggerLogger)
 	if err != nil {
 		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
-	serverServer, cleanup3, err := server.New(ctx, serverConfig, handler)
+	volatraderService := service.New(loggerLogger, statsStats, strategiesClient)
+	handler, err := handlers.New(volatraderService, loggerLogger)
 	if err != nil {
+		cleanup3()
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
+	serverServer, cleanup4, err := server.New(ctx, serverConfig, handler)
+	if err != nil {
+		cleanup3()
 		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
 	return serverServer, func() {
+		cleanup4()
 		cleanup3()
 		cleanup2()
 		cleanup()
@@ -55,3 +66,5 @@ func InitializeAndRun(ctx context.Context, cfg config.FilePath) (*server.Server,
 // wire.go:
 
 var serviceModule = wire.NewSet(service.Module, wire.Bind(new(service.Service), new(*service.VolatraderService)))
+
+var strategiesModule = wire.NewSet(strategies.Module, wire.Bind(new(strategies.Strategies), new(*strategies.StrategiesClient)))

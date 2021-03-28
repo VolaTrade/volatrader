@@ -29,6 +29,9 @@ func New(service service.Service, logger *logger.Logger) (*Handler, error) {
 	router.Use(middleware.Logger)
 
 	registerEndpoint("/health", router.Get, handlers.HealthCheck)
+	registerEndpoint("/v1/session/start", router.Post, handlers.StartTradeSession)
+	registerEndpoint("/v1/session/kill", router.Get, handlers.KillTradeSession)
+	registerEndpoint("/v1/indicators/update", router.Post, handlers.IndicatorUpdate)
 	handlers.router = router
 
 	return handlers, nil

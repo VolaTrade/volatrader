@@ -22,6 +22,7 @@ import (
 func InitializeAndRun(ctx context.Context, cfg config.FilePath) (*server.Server, func(), error) {
 	configConfig := config.NewConfig(cfg)
 	serverConfig := config.NewServerConfig(configConfig)
+	serviceConfig := config.NewServiceConfig(configConfig)
 	loggerConfig := config.NewLoggerConfig(configConfig)
 	loggerLogger, cleanup, err := logger.New(loggerConfig)
 	if err != nil {
@@ -40,7 +41,7 @@ func InitializeAndRun(ctx context.Context, cfg config.FilePath) (*server.Server,
 		cleanup()
 		return nil, nil, err
 	}
-	volatraderService := service.New(loggerLogger, statsStats, strategiesClient)
+	volatraderService := service.New(serviceConfig, loggerLogger, statsStats, strategiesClient)
 	handler, err := handlers.New(volatraderService, loggerLogger)
 	if err != nil {
 		cleanup3()

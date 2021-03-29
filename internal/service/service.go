@@ -32,7 +32,7 @@ type Service interface {
 	DeleteTradeSession(sessionID string)
 	IndicatorUpdate(iu models.IndicatorUpdate) (*models.CommMessage, error)
 	KillSessionRoutine(sessionID string) error
-	StartSessionRoutine(strategyID string) (string, error)
+	StartSessionRoutine(startRequest models.SessionStartRequest) (string, error)
 }
 
 //VolatraderService struct to hold relevant inner data members and hold functions for business logic
@@ -62,6 +62,7 @@ func New(cfg *Config, logger *logger.Logger,
 		commMap[commID.String()] = comm
 		go comm.WaitAndSlave()
 	}
+
 	return &VolatraderService{
 		config:            cfg,
 		commChannel:       commChannel,

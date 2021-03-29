@@ -7,7 +7,8 @@ import (
 	"github.com/volatrade/protobufs/strategies/manager"
 )
 
-func (strat *StrategiesClient) RegisterStrategySession(sessionID string, strategyID string) ([]string, error) {
+func (strat *StrategiesClient) RegisterStrategySession(sessionID string, strategyID string,
+	stopLoss bool, trailing bool, percent bool) ([]string, error) {
 
 	resp, err := strat.managerClient.SpawnStrategy(
 		context.Background(),

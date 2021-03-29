@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"time"
@@ -12,7 +13,15 @@ import (
 
 func (h *Handler) StartTradeSession(w http.ResponseWriter, r *http.Request) {
 
-	sessionID, err := h.svc.StartSessionRoutine("ExampleStrategy")
+	var startRequest models.SessionStartRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&startRequest); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		render.JSON(w, r, apierrors.CreateJSONDecodeErrorResponse(err))
+		return
+	}
+
+	sessionID, err := h.svc.StartSessionRoutine(startRequest)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -25,13 +34,13 @@ func (h *Handler) StartTradeSession(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) KillTradeSession(w http.ResponseWriter, r *http.Request) {
 
-	sessionID, found := r.URL.Query()["session_id"]
+	sessionIDs, found := r.URL.Query()["session_id"]
 
 	if !found {
 		h.writeErrorResponse(w, r, apierrors.NewErrorResponse(errors.New("Param missing")))
 	}
 
-	if err := h.svc.KillSessionRoutine(sessionID[0]); err != nil {
+	if err := h.svc.KillSessionRoutine(sessionIDs[0]); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		render.JSON(w, r, err.Error())
 		return

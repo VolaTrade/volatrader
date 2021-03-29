@@ -58,9 +58,9 @@ func (tsp *TSProcessor) handleSessionUpdate() error {
 		tsp.positionEntered = !tsp.positionEntered
 		//SEND UPDATE REQUEST TO EXTERNAL API
 		tsp.logger.Infow("Stratey logic returned true",
-			"Trade session ", tsp.session.SessionID,
-			"Strategy ", tsp.session.StrategyID,
-			"Position entered ", tsp.positionEntered,
+			"Trade session", tsp.session.SessionID,
+			"Strategy", tsp.session.StrategyID,
+			"Position entered", tsp.positionEntered,
 		)
 	}
 
@@ -86,7 +86,7 @@ func (tsp *TSProcessor) Run(ctx context.Context) {
 			}
 
 		case <-tsp.Die:
-			tsp.logger.Infow("Received death request", "Trade session ", tsp.session.SessionID)
+			tsp.logger.Infow("Received death request", "Trade session", tsp.session.SessionID)
 			return
 
 		case <-ctx.Done():

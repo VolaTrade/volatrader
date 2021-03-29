@@ -3,15 +3,20 @@ package service
 import (
 	"context"
 
+	"github.com/volatrade/volatrader/internal/models"
 	"github.com/volatrade/volatrader/internal/session"
 	"github.com/volatrade/volatrader/internal/tsprocessor"
 )
 
-func (svc *VolatraderService) StartSessionRoutine(strategyID string) (string, error) {
+func (svc *VolatraderService) StartSessionRoutine(startRequest models.SessionStartRequest) (string, error) {
 
-	ts := session.New(strategyID)
+	ts := session.New(startRequest.StrategyID)
 	//register session with Strategy API
-	stratIndicators, err := svc.strategies.RegisterStrategySession(ts.SessionID.String(), strategyID)
+	stratIndicators, err := svc.strategies.
+		RegisterStrategySession(
+			ts.SessionID.String(),
+			startRequest.StrategyID,
+		)
 
 	if err != nil {
 		return "", err

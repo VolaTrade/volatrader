@@ -8,13 +8,16 @@ import (
 )
 
 func (strat *StrategiesClient) RegisterStrategySession(sessionID string, strategyID string,
-	stopLoss bool, trailing bool, percent bool) ([]string, error) {
+	stopLoss bool, trailing bool, percent float64) ([]string, error) {
 
 	resp, err := strat.managerClient.SpawnStrategy(
 		context.Background(),
 		&manager.SpawnRequest{
 			SessionID:  sessionID,
 			StrategyID: strategyID,
+			// StopLoss: stopLoss,
+			// Trailing: trailing, 
+			// Percent: percent,
 		},
 	)
 	if err != nil {

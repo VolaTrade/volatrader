@@ -18,10 +18,11 @@ var Module = wire.NewSet(
 
 type (
 	Strategies interface {
-		Clone() (*StrategiesClient, error)
+		Clone() (Strategies, error)
 		DeleteStrategySession(sessionID string) error
 		ExecuteStrategyUpdate(sessionID string, stratParams map[string]float64, buyUpdate bool) (bool, error)
-		RegisterStrategySession(sessionID string, strategyID string) ([]string, error)
+		RegisterStrategySession(sessionID string, strategyID string,
+			stopLoss bool, trailing bool, percent float64) ([]string, error)
 	}
 
 	Config struct {
@@ -38,7 +39,7 @@ type (
 	}
 )
 
-func (sc *StrategiesClient) Clone() (*StrategiesClient, error) {
+func (sc *StrategiesClient) Clone() (Strategies, error) {
 	clone := StrategiesClient{}
 	clone.config = sc.config
 	clone.kstats = sc.kstats

@@ -11,11 +11,28 @@ import (
 func (svc *VolatraderService) StartSessionRoutine(startRequest models.SessionStartRequest) (string, error) {
 
 	ts := session.New(startRequest.StrategyID)
+
+	//TODO validation
+	var stopLoss, trailing bool
+	var percent float64
+
+	if startRequest.StopLoss != nil {
+		stopLoss = true
+		trailing = startRequest.StopLoss.Trailing
+		percent = startRequest.StopLoss.Percent
+	} else {
+		stopLoss = false
+		trailing = false
+		percent = 0.0
+	}
 	//register session with Strategy API
 	stratIndicators, err := svc.strategies.
 		RegisterStrategySession(
 			ts.SessionID.String(),
 			startRequest.StrategyID,
+			stopLoss,
+			trailing,
+			percent,
 		)
 
 	if err != nil {

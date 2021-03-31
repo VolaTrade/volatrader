@@ -11,34 +11,35 @@ import (
 )
 
 type TSProcessor struct {
-	Die             chan bool
+	die             chan bool
 	positionEntered bool
 	logger          *logger.Logger
 	session         *session.TradeSession
-	UpdateChan      chan models.IndicatorUpdate
+	updateChan      chan models.IndicatorUpdate
 	stratClient     strategies.Strategies
 	buyIndicators   []string
 	sellIndicators  []string
 }
 
-func New(logger *logger.Logger, stratClient strategies.Strategies,
-	session *session.TradeSession, buyIndicators []string, sellIndicators []string) *TSProcessor {
+func New(logger *logger.Logger, stratClient strategies.Strategies, die chan bool,
+	updateChan chan models.IndicatorUpdate, session *session.TradeSession,
+	buyIndicators []string, sellIndicators []string) *TSProcessor {
 
 	return &TSProcessor{
 		buyIndicators:   buyIndicators,
 		sellIndicators:  sellIndicators,
-		Die:             make(chan bool),
+		die:             die,
 		positionEntered: false,
 		logger:          logger,
 		session:         session,
-		UpdateChan:      make(chan models.IndicatorUpdate),
+		updateChan:      updateChan,
 		stratClient:     stratClient,
 	}
 }
 
 func (tsp *TSProcessor) handleIndicatorUpdate(update models.IndicatorUpdate) error {
 
-	if err := tsp.session.InsertValue(update.Indicator, update.Value); err != nil {
+	if err := tsp.session.InsertValue(update.Indicator, update.Value, tsp.positionEntered); err != nil {
 		tsp.logger.Errorw(err.Error())
 		return err
 	}
@@ -78,7 +79,7 @@ func (tsp *TSProcessor) Run(ctx context.Context) {
 	for {
 		select {
 
-		case update := <-tsp.UpdateChan:
+		case update := <-tsp.updateChan:
 
 			if err := tsp.handleIndicatorUpdate(update); err != nil {
 				continue
@@ -88,8 +89,8 @@ func (tsp *TSProcessor) Run(ctx context.Context) {
 					tsp.logger.Errorw(err.Error())
 				}
 			}
-			
-		case <-tsp.Die:
+
+		case <-tsp.die:
 			tsp.logger.Infow("Received death request", "Trade session", tsp.session.SessionID)
 			return
 

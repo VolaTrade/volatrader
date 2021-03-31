@@ -67,6 +67,8 @@ github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5
 github.com/stretchr/testify v1.6.1 h1:hDPOHmpOpP40lSULcqw7IrRb/u7w6RpDC9399XyoNd0=
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/tkanos/gonfig v0.0.0-20181112185242-896f3d81fadf/go.mod h1:DaZPBuToMc2eezA9R9nDAnmS2RMwL7yEa5YD36ESQdI=
+github.com/volatrade/currie-logs v0.0.4 h1:DR882dZNe3aUcXa823AYB4uKvcDv1h8wLrAp55NuPa0=
+github.com/volatrade/currie-logs v0.0.4/go.mod h1:He7KroLJoT56e3blB5nNGDIuOeg6D4RvIDxYomVvdwo=
 github.com/volatrade/currie-logs v0.0.5 h1:lBDQ8bk9MUSa6F7oKx8TwFQO6RruBfPs5IhURi6L8Yw=
 github.com/volatrade/currie-logs v0.0.5/go.mod h1:He7KroLJoT56e3blB5nNGDIuOeg6D4RvIDxYomVvdwo=
 github.com/volatrade/go-errors v1.0.4 h1:/MMUZAfoePf9KZaVzjLcI2ZcLtC6uy0hhlrbVkEjGcc=

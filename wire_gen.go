@@ -15,6 +15,7 @@ import (
 	"github.com/volatrade/volatrader/internal/server"
 	"github.com/volatrade/volatrader/internal/service"
 	"github.com/volatrade/volatrader/internal/strategies"
+	"github.com/volatrade/volatrader/internal/streamer"
 )
 
 // Injectors from wire.go:
@@ -22,41 +23,47 @@ import (
 func InitializeAndRun(ctx context.Context, cfg config.FilePath) (*server.Server, func(), error) {
 	configConfig := config.NewConfig(cfg)
 	serverConfig := config.NewServerConfig(configConfig)
-	serviceConfig := config.NewServiceConfig(configConfig)
 	loggerConfig := config.NewLoggerConfig(configConfig)
 	loggerLogger, cleanup, err := logger.New(loggerConfig)
 	if err != nil {
 		return nil, nil, err
 	}
+	streamerConfig := config.NewStreamerConfig(configConfig)
+	vtStreamer, cleanup2 := streamer.New(streamerConfig, loggerLogger)
 	statsConfig := config.NewStatsConfig(configConfig)
-	statsStats, cleanup2, err := stats.New(statsConfig)
-	if err != nil {
-		cleanup()
-		return nil, nil, err
-	}
-	strategiesConfig := config.NewStrategiesConfig(configConfig)
-	strategiesClient, cleanup3, err := strategies.New(strategiesConfig, statsStats, loggerLogger)
+	statsStats, cleanup3, err := stats.New(statsConfig)
 	if err != nil {
 		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
-	volatraderService := service.New(serviceConfig, loggerLogger, statsStats, strategiesClient)
-	handler, err := handlers.New(volatraderService, loggerLogger)
+	strategiesConfig := config.NewStrategiesConfig(configConfig)
+	strategiesClient, cleanup4, err := strategies.New(strategiesConfig, statsStats, loggerLogger)
 	if err != nil {
 		cleanup3()
 		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
-	serverServer, cleanup4, err := server.New(ctx, serverConfig, handler)
+	volatraderService := service.New(loggerLogger, vtStreamer, statsStats, strategiesClient)
+	handler, err := handlers.New(volatraderService, loggerLogger)
 	if err != nil {
+		cleanup4()
+		cleanup3()
+		cleanup2()
+		cleanup()
+		return nil, nil, err
+	}
+	serverServer, cleanup5, err := server.New(ctx, serverConfig, handler)
+	if err != nil {
+		cleanup4()
 		cleanup3()
 		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
 	return serverServer, func() {
+		cleanup5()
 		cleanup4()
 		cleanup3()
 		cleanup2()
@@ -69,3 +76,5 @@ func InitializeAndRun(ctx context.Context, cfg config.FilePath) (*server.Server,
 var serviceModule = wire.NewSet(service.Module, wire.Bind(new(service.Service), new(*service.VolatraderService)))
 
 var strategiesModule = wire.NewSet(strategies.Module, wire.Bind(new(strategies.Strategies), new(*strategies.StrategiesClient)))
+
+var streamerModule = wire.NewSet(streamer.Module, wire.Bind(new(streamer.Streamer), new(*streamer.VTStreamer)))

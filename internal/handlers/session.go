@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"time"
 
@@ -21,6 +22,7 @@ func (h *Handler) StartTradeSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Printf("Start request ---> %+v", startRequest)
 	sessionID, err := h.svc.StartSessionRoutine(startRequest)
 
 	if err != nil {

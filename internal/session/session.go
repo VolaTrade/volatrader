@@ -12,7 +12,8 @@ type TradeSession struct {
 	mux            *sync.RWMutex
 	SessionID      uuid.UUID
 	StrategyID     string
-	Indicators     map[string]interface{}
+	BuyIndicators  map[string]interface{}
+	SellIndicators map[string]interface{}
 	indicatorCount uint32
 	ValueMap       map[string]float64
 	valueMapLength uint32
@@ -20,11 +21,12 @@ type TradeSession struct {
 
 func New(strategyID string) *TradeSession {
 	return &TradeSession{
-		mux:        &sync.RWMutex{},
-		SessionID:  uuid.New(),
-		StrategyID: strategyID,
-		ValueMap:   make(map[string]float64, 0),
-		Indicators: make(map[string]interface{}, 0),
+		mux:            &sync.RWMutex{},
+		SessionID:      uuid.New(),
+		StrategyID:     strategyID,
+		ValueMap:       make(map[string]float64, 0),
+		BuyIndicators:  make(map[string]interface{}, 0),
+		SellIndicators: make(map[string]interface{}, 0),
 	}
 }
 
@@ -39,9 +41,14 @@ func (ts *TradeSession) LengthsEqual() bool {
 	return ts.valueMapLength == ts.indicatorCount
 }
 
-func (ts *TradeSession) InsertValue(indicator string, value float64) error {
+func (ts *TradeSession) InsertValue(indicator string, value float64, posEntered bool) error {
 	ts.mux.RLock()
-	if _, exists := ts.Indicators[indicator]; !exists {
+	indicators := ts.BuyIndicators
+	if posEntered {
+		indicators = ts.SellIndicators
+	}
+	
+	if _, exists := indicators[indicator]; !exists {
 		ts.mux.RUnlock()
 		return errors.New(fmt.Sprintf("Indicator not found for %s for session: %s", indicator, ts.SessionID))
 	}

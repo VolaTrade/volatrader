@@ -13,17 +13,13 @@ func (svc *VolatraderService) StartSessionRoutine(startRequest models.SessionSta
 	ts := session.New(startRequest.StrategyID)
 
 	//TODO validation
-	var stopLoss, trailing bool
-	var percent float64
+	var stopLoss, trailing bool = false, false
+	var percent float64 = 0.0
 
 	if startRequest.StopLoss != nil {
 		stopLoss = true
 		trailing = startRequest.StopLoss.Trailing
 		percent = startRequest.StopLoss.Percent
-	} else {
-		stopLoss = false
-		trailing = false
-		percent = 0.0
 	}
 	//register session with Strategy API
 	buyIndicators, sellIndicators, err := svc.strategies.
@@ -40,10 +36,10 @@ func (svc *VolatraderService) StartSessionRoutine(startRequest models.SessionSta
 	}
 
 	for _, indicator := range buyIndicators {
-		ts.Indicators[indicator] = nil
+		ts.BuyIndicators[indicator] = nil
 	}
 	for _, indicator := range sellIndicators {
-		ts.Indicators[indicator] = nil
+		ts.SellIndicators[indicator] = nil
 	}
 	stratClient, err := svc.strategies.Clone()
 
@@ -51,19 +47,16 @@ func (svc *VolatraderService) StartSessionRoutine(startRequest models.SessionSta
 		return "", err
 	}
 
-	tsp := tsprocessor.New(svc.logger, stratClient, ts, buyIndicators, sellIndicators)
+	updateChan := make(chan models.IndicatorUpdate)
+	deathChan := make(chan bool)
+	tsp := tsprocessor.New(svc.logger, stratClient, deathChan,
+		updateChan, ts, buyIndicators, sellIndicators,
+	)
 	svc.logger.Infow("Running session processor")
 
-	svc.AddSession(buyIndicators, ts.SessionID.String(), tsp)
-	svc.AddSession(sellIndicators, ts.SessionID.String(), tsp)
+	indicators := append(buyIndicators, sellIndicators...)
 
-	for _, commStruct := range svc.commMap {
-
-		commStruct.UpdateSessionMap(svc.indicatorSessions)
-	}
-
-	svc.sessionProcesses[ts.SessionID.String()] = tsp
-
+	svc.streamer.AddSession(indicators, ts.SessionID.String(), updateChan, deathChan)
 	go tsp.Run(context.Background())
 
 	return ts.SessionID.String(), nil
@@ -71,14 +64,6 @@ func (svc *VolatraderService) StartSessionRoutine(startRequest models.SessionSta
 
 func (svc *VolatraderService) KillSessionRoutine(sessionID string) error {
 
-	println("SessionID --> ", sessionID)
-	svc.sessionProcesses[sessionID].Die <- true
-	svc.DeleteTradeSession(sessionID)
-
-	for _, commStruct := range svc.commMap {
-
-		commStruct.UpdateSessionMap(svc.indicatorSessions)
-	}
-
-	return svc.strategies.DeleteStrategySession(sessionID)
+	svc.streamer.DeleteTradeSession(sessionID)
+	return nil
 }

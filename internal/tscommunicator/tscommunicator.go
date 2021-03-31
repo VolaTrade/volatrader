@@ -11,7 +11,6 @@ import (
 	"github.com/google/uuid"
 	logger "github.com/volatrade/currie-logs"
 	"github.com/volatrade/volatrader/internal/models"
-	"github.com/volatrade/volatrader/internal/tsprocessor"
 )
 
 type TSCommunicator interface {
@@ -21,7 +20,7 @@ type VTTSCommunicator struct {
 	id                  uuid.UUID
 	logger              *logger.Logger
 	mux                 *sync.RWMutex
-	indicatorSessionMap map[string]map[string]*tsprocessor.TSProcessor
+	indicatorSessionMap map[string]map[string]chan models.IndicatorUpdate
 	serviceChan         chan models.IndicatorUpdate
 	relayChannel        chan models.CommMessage
 }
@@ -34,12 +33,12 @@ func New(id uuid.UUID, logger *logger.Logger,
 		mux:                 &sync.RWMutex{},
 		relayChannel:        relayChannel,
 		serviceChan:         svcChan,
-		indicatorSessionMap: make(map[string]map[string]*tsprocessor.TSProcessor, 0),
+		indicatorSessionMap: make(map[string]map[string]chan models.IndicatorUpdate, 0),
 	}
 
 }
 
-func (com *VTTSCommunicator) UpdateSessionMap(newMap map[string]map[string]*tsprocessor.TSProcessor) {
+func (com *VTTSCommunicator) UpdateSessionMap(newMap map[string]map[string]chan models.IndicatorUpdate) {
 	com.mux.Lock()
 	com.indicatorSessionMap = newMap
 	com.mux.Unlock()
@@ -57,8 +56,8 @@ func (com *VTTSCommunicator) WaitAndSlave(ctx context.Context) {
 			relayMessage := models.CommMessage{ID: com.id.String()}
 			com.mux.RLock()
 			if sessionProcMap, ok := com.indicatorSessionMap[update.Indicator]; ok {
-				for _, tradeProcess := range sessionProcMap {
-					tradeProcess.UpdateChan <- update
+				for _, processChannel := range sessionProcMap {
+					processChannel <- update
 				}
 			} else {
 				relayMessage.Error = errors.New(fmt.Sprintf("Could not find indicator %s", update.Indicator))

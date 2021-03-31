@@ -26,7 +26,7 @@ func (svc *VolatraderService) StartSessionRoutine(startRequest models.SessionSta
 		percent = 0.0
 	}
 	//register session with Strategy API
-	stratIndicators, err := svc.strategies.
+	buyIndicators, sellIndicators, err := svc.strategies.
 		RegisterStrategySession(
 			ts.SessionID.String(),
 			startRequest.StrategyID,
@@ -39,7 +39,10 @@ func (svc *VolatraderService) StartSessionRoutine(startRequest models.SessionSta
 		return "", err
 	}
 
-	for _, indicator := range stratIndicators {
+	for _, indicator := range buyIndicators {
+		ts.Indicators[indicator] = nil
+	}
+	for _, indicator := range sellIndicators {
 		ts.Indicators[indicator] = nil
 	}
 	stratClient, err := svc.strategies.Clone()
@@ -48,10 +51,12 @@ func (svc *VolatraderService) StartSessionRoutine(startRequest models.SessionSta
 		return "", err
 	}
 
-	tsp := tsprocessor.New(svc.logger, stratClient, ts)
+	tsp := tsprocessor.New(svc.logger, stratClient, ts, buyIndicators, sellIndicators)
 	svc.logger.Infow("Running session processor")
 
-	svc.AddSession(stratIndicators, ts.SessionID.String(), tsp)
+	svc.AddSession(buyIndicators, ts.SessionID.String(), tsp)
+	svc.AddSession(sellIndicators, ts.SessionID.String(), tsp)
+
 	for _, commStruct := range svc.commMap {
 
 		commStruct.UpdateSessionMap(svc.indicatorSessions)

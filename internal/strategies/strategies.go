@@ -22,7 +22,7 @@ type (
 		DeleteStrategySession(sessionID string) error
 		ExecuteStrategyUpdate(sessionID string, stratParams map[string]float64, buyUpdate bool) (bool, error)
 		RegisterStrategySession(sessionID string, strategyID string,
-			stopLoss bool, trailing bool, percent float64) ([]string, error)
+			stopLoss bool, trailing bool, percent float64) ([]string, []string, error)
 	}
 
 	Config struct {

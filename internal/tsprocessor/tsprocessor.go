@@ -17,11 +17,16 @@ type TSProcessor struct {
 	session         *session.TradeSession
 	UpdateChan      chan models.IndicatorUpdate
 	stratClient     strategies.Strategies
+	buyIndicators   []string
+	sellIndicators  []string
 }
 
-func New(logger *logger.Logger, stratClient strategies.Strategies, session *session.TradeSession) *TSProcessor {
+func New(logger *logger.Logger, stratClient strategies.Strategies,
+	session *session.TradeSession, buyIndicators []string, sellIndicators []string) *TSProcessor {
 
 	return &TSProcessor{
+		buyIndicators:   buyIndicators,
+		sellIndicators:  sellIndicators,
 		Die:             make(chan bool),
 		positionEntered: false,
 		logger:          logger,
@@ -78,13 +83,12 @@ func (tsp *TSProcessor) Run(ctx context.Context) {
 			if err := tsp.handleIndicatorUpdate(update); err != nil {
 				continue
 			}
-
 			if tsp.session.LengthsEqual() {
 				if err := tsp.handleSessionUpdate(); err != nil {
 					tsp.logger.Errorw(err.Error())
 				}
 			}
-
+			
 		case <-tsp.Die:
 			tsp.logger.Infow("Received death request", "Trade session", tsp.session.SessionID)
 			return

@@ -11,6 +11,7 @@ import (
 )
 
 type TSProcessor struct {
+	tradingPair     string
 	die             chan bool
 	positionEntered bool
 	logger          *logger.Logger
@@ -23,9 +24,10 @@ type TSProcessor struct {
 
 func New(logger *logger.Logger, stratClient strategies.Strategies, die chan bool,
 	updateChan chan models.IndicatorUpdate, session *session.TradeSession,
-	buyIndicators []string, sellIndicators []string) *TSProcessor {
+	buyIndicators []string, sellIndicators []string, pair string) *TSProcessor {
 
 	return &TSProcessor{
+		tradingPair:     pair,
 		buyIndicators:   buyIndicators,
 		sellIndicators:  sellIndicators,
 		die:             die,
@@ -39,7 +41,7 @@ func New(logger *logger.Logger, stratClient strategies.Strategies, die chan bool
 
 func (tsp *TSProcessor) handleIndicatorUpdate(update models.IndicatorUpdate) error {
 
-	if err := tsp.session.InsertValue(update.Indicator, update.Value, tsp.positionEntered); err != nil {
+	if err := tsp.session.InsertIndicator(update.Indicator, update.Value, tsp.positionEntered); err != nil {
 		tsp.logger.Errorw(err.Error())
 		return err
 	}
@@ -84,7 +86,7 @@ func (tsp *TSProcessor) Run(ctx context.Context) {
 			if err := tsp.handleIndicatorUpdate(update); err != nil {
 				continue
 			}
-			if tsp.session.LengthsEqual() {
+			if tsp.session.IndicatorsReadyForUpdate(tsp.positionEntered) {
 				if err := tsp.handleSessionUpdate(); err != nil {
 					tsp.logger.Errorw(err.Error())
 				}

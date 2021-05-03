@@ -24,7 +24,7 @@ type Config struct {
 
 type Streamer interface {
 	AddSession(indicators []string, sessionID string,
-		updateChan chan models.IndicatorUpdate, deathChan chan bool,
+		updateChan chan models.IndicatorUpdate, deathChan chan bool, pair string,
 	)
 	IndicatorUpdate(iu models.IndicatorUpdate) (*models.CommMessage, error)
 	DeleteTradeSession(sessionID string)
@@ -35,7 +35,7 @@ type VTStreamer struct {
 	commChannel       chan models.IndicatorUpdate
 	relayChannel      chan models.CommMessage
 	deathMap          map[string]chan bool
-	indicatorSessions map[string]map[string]chan models.IndicatorUpdate
+	indicatorSessions map[string]map[string]map[string]chan models.IndicatorUpdate
 	commMap           map[string]*tscommunicator.VTTSCommunicator
 }
 
@@ -58,23 +58,25 @@ func New(cfg *Config, logger *logger.Logger) (*VTStreamer, func()) {
 		commChannel:       commChannel,
 		relayChannel:      relayChannel,
 		deathMap:          make(map[string]chan bool, 0),
-		indicatorSessions: make(map[string]map[string]chan models.IndicatorUpdate, 0),
+		indicatorSessions: make(map[string]map[string]map[string]chan models.IndicatorUpdate, 0),
 		commMap:           commMap,
 	}, end
 
 }
 
 func (vts *VTStreamer) AddSession(indicators []string, sessionID string,
-	updateChan chan models.IndicatorUpdate, deathChan chan bool,
+	updateChan chan models.IndicatorUpdate, deathChan chan bool, pair string,
 ) {
 	vts.deathMap[sessionID] = deathChan
 	for _, indicator := range indicators {
-
+		if _, ok := vts.indicatorSessions[pair]; !ok {
+			vts.indicatorSessions[pair] = make(map[string]map[string]chan models.IndicatorUpdate, 0)
+		}
 		if _, ok := vts.indicatorSessions[indicator]; !ok {
-			vts.indicatorSessions[indicator] = make(map[string]chan models.IndicatorUpdate, 0)
+			vts.indicatorSessions[pair][indicator] = make(map[string]chan models.IndicatorUpdate, 0)
 		}
 		if _, ok := vts.indicatorSessions[indicator][sessionID]; !ok {
-			vts.indicatorSessions[indicator][sessionID] = updateChan
+			vts.indicatorSessions[pair][indicator][sessionID] = updateChan
 		}
 	}
 

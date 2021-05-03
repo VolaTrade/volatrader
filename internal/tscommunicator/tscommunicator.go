@@ -20,8 +20,8 @@ type VTTSCommunicator struct {
 	id                  uuid.UUID
 	logger              *logger.Logger
 	mux                 *sync.RWMutex
-	indicatorSessionMap map[string]map[string]chan models.IndicatorUpdate
-	serviceChan         chan models.IndicatorUpdate
+	indicatorSessionMap map[string]map[string]map[string]chan models.IndicatorUpdate
+	indicatorChannel    chan models.IndicatorUpdate
 	relayChannel        chan models.CommMessage
 }
 
@@ -32,13 +32,13 @@ func New(id uuid.UUID, logger *logger.Logger,
 		logger:              logger,
 		mux:                 &sync.RWMutex{},
 		relayChannel:        relayChannel,
-		serviceChan:         svcChan,
-		indicatorSessionMap: make(map[string]map[string]chan models.IndicatorUpdate, 0),
+		indicatorChannel:    svcChan,
+		indicatorSessionMap: make(map[string]map[string]map[string]chan models.IndicatorUpdate, 0),
 	}
 
 }
 
-func (com *VTTSCommunicator) UpdateSessionMap(newMap map[string]map[string]chan models.IndicatorUpdate) {
+func (com *VTTSCommunicator) UpdateSessionMap(newMap map[string]map[string]map[string]chan models.IndicatorUpdate) {
 	com.mux.Lock()
 	com.indicatorSessionMap = newMap
 	com.mux.Unlock()
@@ -52,15 +52,15 @@ func (com *VTTSCommunicator) WaitAndSlave(ctx context.Context) {
 		case <-ctx.Done():
 			return
 
-		case update := <-com.serviceChan:
+		case indUpdate := <-com.indicatorChannel:
 			relayMessage := models.CommMessage{ID: com.id.String()}
 			com.mux.RLock()
-			if sessionProcMap, ok := com.indicatorSessionMap[update.Indicator]; ok {
+			if sessionProcMap, ok := com.indicatorSessionMap[indUpdate.Pair][indUpdate.Indicator]; ok {
 				for _, processChannel := range sessionProcMap {
-					processChannel <- update
+					processChannel <- indUpdate
 				}
 			} else {
-				relayMessage.Error = errors.New(fmt.Sprintf("Could not find indicator %s", update.Indicator))
+				relayMessage.Error = errors.New(fmt.Sprintf("Could not find indicator %s", indUpdate.Indicator))
 			}
 			com.mux.RUnlock()
 			com.relayChannel <- relayMessage

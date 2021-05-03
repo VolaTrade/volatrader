@@ -2,8 +2,8 @@ package strategies
 
 import (
 	"context"
-	"log"
 
+	"github.com/volatrade/go-errors/apierrors"
 	"github.com/volatrade/protobufs/strategies/manager"
 )
 
@@ -16,6 +16,10 @@ func (strat *StrategiesClient) DeleteStrategySession(sessionID string) error {
 		},
 	)
 
-	log.Printf("%+v", resp)
+	if resp.Code == 5 {
+		return apierrors.NewError(apierrors.NotFoundErrorType,
+			"Session ID not found in Strategies API").
+			WithExternalMessage("Session ID not found from Strategies API")
+	}
 	return err
 }

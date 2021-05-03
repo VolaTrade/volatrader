@@ -9,14 +9,15 @@ import (
 )
 
 type TradeSession struct {
-	mux            *sync.RWMutex
-	SessionID      uuid.UUID
-	StrategyID     string
-	BuyIndicators  map[string]interface{}
-	SellIndicators map[string]interface{}
-	indicatorCount uint32
-	ValueMap       map[string]float64
-	valueMapLength uint32
+	mux                *sync.RWMutex
+	SessionID          uuid.UUID
+	StrategyID         string
+	BuyIndicators      map[string]interface{}
+	BuyIndicatorCount  uint32
+	SellIndicators     map[string]interface{}
+	SellIndicatorCount uint32
+	ValueMap           map[string]float64
+	valueMapLength     uint32
 }
 
 func New(strategyID string) *TradeSession {
@@ -37,17 +38,27 @@ func (ts *TradeSession) ResetValueMap() {
 	ts.valueMapLength = 0
 }
 
-func (ts *TradeSession) LengthsEqual() bool {
-	return ts.valueMapLength == ts.indicatorCount
+//Checks to see if session is ready for an indicator update
+func (ts *TradeSession) IndicatorsReadyForUpdate(posEntered bool) bool {
+	ts.mux.RLock()
+	defer ts.mux.RUnlock()
+
+	if posEntered {
+		return ts.valueMapLength == ts.SellIndicatorCount
+	}
+	return ts.valueMapLength == ts.BuyIndicatorCount
 }
 
-func (ts *TradeSession) InsertValue(indicator string, value float64, posEntered bool) error {
+//InsertIndicatorValue inserts indicator value to trade sessions internal indicator value map
+func (ts *TradeSession) InsertIndicator(indicator string, value float64, posEntered bool) error {
 	ts.mux.RLock()
-	indicators := ts.BuyIndicators
+	var indicators map[string]interface{}
 	if posEntered {
 		indicators = ts.SellIndicators
+	} else {
+		indicators = ts.BuyIndicators
 	}
-	
+
 	if _, exists := indicators[indicator]; !exists {
 		ts.mux.RUnlock()
 		return errors.New(fmt.Sprintf("Indicator not found for %s for session: %s", indicator, ts.SessionID))
@@ -55,19 +66,7 @@ func (ts *TradeSession) InsertValue(indicator string, value float64, posEntered 
 
 	ts.mux.RUnlock()
 	ts.mux.Lock()
-	defer ts.mux.Unlock()
 	ts.ValueMap[indicator] = value
+	ts.mux.Unlock()
 	return nil
 }
-
-// func (ts *TradeSession) IndicatorsAreReady() bool {
-// 	ts.mux.RLock()
-// 	defer ts.mux.RUnlock()
-// 	//map to map comparison for O(N) best case look up
-// 	for key, _ := range ts.Indicators {
-// 		if _, exists := ts.valueMap[key]; !exists {
-// 			return false
-// 		}
-// 	}
-// 	return true
-// }

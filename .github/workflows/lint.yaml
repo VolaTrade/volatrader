@@ -10,12 +10,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: setup env 
-        env:
-          GOPRIVATE: github.com/volatrade
-        run: | 
-          go mod download
-          
+      - name: Granting private modules access
+        run: |
+          git config --global url."https://${{ secrets.GH_READ_ACCESS_KEY }}:x-oauth-basic@github.com/volatrade".insteadOf "https://github.com/volatrade"     
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
         with:

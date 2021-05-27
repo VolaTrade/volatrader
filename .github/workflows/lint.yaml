@@ -18,7 +18,7 @@ jobs:
         run: |
           echo ${{secrets.GH_READ_ACCESS_KEY}}
           git config --global url."https://${{ secrets.GH_READ_ACCESS_KEY }}:x-oauth-basic@github.com/volatrade".insteadOf "https://github.com/volatrade"     
-          git config --global url."https://${{secrets.GH_READ_ACCESS_KEY}}:@github.com/".insteadOf "https://github.com/"
+          git config --global url."https://${{ secrets.GH_READ_ACCESS_KEY }}:@github.com/".insteadOf "https://github.com/volatrade"
       - name: Install go mod deps 
         run: | 
           go env -w GO111MODULE=on

@@ -8,11 +8,11 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        - uses: actions/checkout@v2
-        - with:
-            persist-credentials: false
 
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
 
       - name: Granting private modules access
         run: |

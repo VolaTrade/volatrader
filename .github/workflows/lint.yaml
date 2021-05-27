@@ -16,7 +16,7 @@ jobs:
 
       - name: Install go mod deps 
           env:
-          GOPRIVATE: github.com/volatrade
+            GOPRIVATE: github.com/volatrade
           run: | 
             go mod tidy
 

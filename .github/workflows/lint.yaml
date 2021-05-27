@@ -16,6 +16,7 @@ jobs:
           
       - name: Install go mod deps 
         run: | 
+          go env -w GO111MODULE=on
           go env -w GOPRIVATE=github.com/volatrade
           go mod tidy
 

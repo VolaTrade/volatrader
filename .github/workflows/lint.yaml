@@ -15,10 +15,10 @@ jobs:
           git config --global url."https://${{ secrets.GH_READ_ACCESS_KEY }}:x-oauth-basic@github.com/volatrade".insteadOf "https://github.com/volatrade"     
           
       - name: Install go mod deps 
-          env:
-            GOPRIVATE: github.com/volatrade
-          run: | 
-            go mod tidy
+        env:
+          GOPRIVATE: github.com/volatrade
+        run: | 
+          go mod tidy
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2

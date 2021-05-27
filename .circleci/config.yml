@@ -12,7 +12,7 @@ alias:
     docker:
       - image: circleci/python:3.8.0
     environment: 
-      SERVICE_NAME: cortex
+      SERVICE_NAME: volatrader
     working_directory: *workdir
 
   - &setup_remote_docker setup_remote_docker

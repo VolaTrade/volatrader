@@ -9,6 +9,7 @@ require (
 	github.com/google/wire v0.4.0
 	github.com/joho/godotenv v1.3.0
 	github.com/stretchr/testify v1.6.1
+	github.com/volatrade/currie-logs v0.0.4 
 	github.com/volatrade/go-errors v1.0.4
 	github.com/volatrade/k-stats v0.0.5
 	github.com/volatrade/protobufs v1.0.2

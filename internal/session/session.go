@@ -1,7 +1,6 @@
 package session
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 
@@ -25,16 +24,16 @@ func New(strategyID string) *TradeSession {
 		mux:            &sync.RWMutex{},
 		SessionID:      uuid.New(),
 		StrategyID:     strategyID,
-		ValueMap:       make(map[string]float64, 0),
-		BuyIndicators:  make(map[string]interface{}, 0),
-		SellIndicators: make(map[string]interface{}, 0),
+		ValueMap:       make(map[string]float64),
+		BuyIndicators:  make(map[string]interface{}),
+		SellIndicators: make(map[string]interface{}),
 	}
 }
 
 func (ts *TradeSession) ResetValueMap() {
 	ts.mux.Lock()
 	defer ts.mux.Unlock()
-	ts.ValueMap = make(map[string]float64, 0)
+	ts.ValueMap = make(map[string]float64)
 	ts.valueMapLength = 0
 }
 
@@ -61,7 +60,7 @@ func (ts *TradeSession) InsertIndicator(indicator string, value float64, posEnte
 
 	if _, exists := indicators[indicator]; !exists {
 		ts.mux.RUnlock()
-		return errors.New(fmt.Sprintf("Indicator not found for %s for session: %s", indicator, ts.SessionID))
+		return fmt.Errorf(fmt.Sprintf("Indicator not found for %s for session: %s", indicator, ts.SessionID))
 	}
 
 	ts.mux.RUnlock()

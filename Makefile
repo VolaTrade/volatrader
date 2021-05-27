@@ -4,7 +4,7 @@ D_NAME=vt_api
 .PHONY: lint
 lint:
 	@echo "\033[0;32m» Linting Go code...\033[0;39m"
-	@tempdir=$(mktemp -d);cd $(tempdir); GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.21.0 2> /dev/null;rm -rf $(tempdir)
+	@tempdir=$(mktemp -d);cd $(tempdir); GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.40.1 2> /dev/null;rm -rf $(tempdir)
 	@golangci-lint run
 
 

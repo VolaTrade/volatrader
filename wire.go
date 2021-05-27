@@ -15,6 +15,7 @@ import (
 	"github.com/volatrade/volatrader/internal/server"
 	"github.com/volatrade/volatrader/internal/service"
 	"github.com/volatrade/volatrader/internal/strategies"
+	"github.com/volatrade/volatrader/internal/streamer"
 )
 
 var serviceModule = wire.NewSet(
@@ -27,6 +28,11 @@ var strategiesModule = wire.NewSet(
 	wire.Bind(new(strategies.Strategies), new(*strategies.StrategiesClient)),
 )
 
+var streamerModule = wire.NewSet(
+	streamer.Module,
+	wire.Bind(new(streamer.Streamer), new(*streamer.VTStreamer)),
+)
+
 func InitializeAndRun(ctx context.Context, cfg config.FilePath) (*server.Server, func(), error) {
 
 	panic(
@@ -36,8 +42,10 @@ func InitializeAndRun(ctx context.Context, cfg config.FilePath) (*server.Server,
 			config.NewStatsConfig,
 			config.NewLoggerConfig,
 			config.NewStrategiesConfig,
+			config.NewStreamerConfig,
 			stats.New,
 			logger.New,
+			streamerModule,
 			serviceModule,
 			strategiesModule,
 			handlers.New,

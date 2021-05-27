@@ -11,6 +11,8 @@ import (
 	"os"
 
 	"github.com/volatrade/volatrader/internal/server"
+	"github.com/volatrade/volatrader/internal/streamer"
+
 	"github.com/volatrade/volatrader/internal/strategies"
 )
 
@@ -19,6 +21,7 @@ type FilePath string
 
 //Config ...
 type Config struct {
+	streamerConfig   streamer.Config
 	serverConfig     server.Config
 	statsConfig      stats.Config
 	strategiesConfig strategies.Config
@@ -53,6 +56,9 @@ func NewConfig(fileName FilePath) *Config {
 			Host: os.Getenv("STRATEGIES_HOST"),
 			Port: convertToInt(os.Getenv("STRATEGIES_PORT")),
 		},
+		streamerConfig: streamer.Config{
+			CommunicatorCount: convertToInt(os.Getenv("COMMUNICATOR_COUNT")),
+		},
 	}
 }
 
@@ -72,6 +78,10 @@ func NewStatsConfig(cfg *Config) *stats.Config {
 
 func NewStrategiesConfig(cfg *Config) *strategies.Config {
 	return &cfg.strategiesConfig
+}
+
+func NewStreamerConfig(cfg *Config) *streamer.Config {
+	return &cfg.streamerConfig
 }
 
 func convertToInt(str string) int {

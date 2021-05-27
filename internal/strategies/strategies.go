@@ -1,7 +1,6 @@
 package strategies
 
 import (
-	"context"
 	"fmt"
 	"log"
 
@@ -19,7 +18,13 @@ var Module = wire.NewSet(
 
 type (
 	Strategies interface {
+		Clone() (Strategies, error)
+		DeleteStrategySession(sessionID string) error
+		ExecuteStrategyUpdate(sessionID string, stratParams map[string]float64, buyUpdate bool) (bool, error)
+		RegisterStrategySession(sessionID string, strategyID string,
+			stopLoss bool, trailing bool, percent float64) ([]string, []string, error)
 	}
+
 	Config struct {
 		Port int
 		Host string
@@ -33,6 +38,35 @@ type (
 		executorClient exec.ExecutorClient
 	}
 )
+
+func (sc *StrategiesClient) Clone() (Strategies, error) {
+	clone := StrategiesClient{}
+	clone.config = sc.config
+	clone.kstats = sc.kstats
+	clone.logger = sc.logger
+
+	conn, err := grpc.Dial(fmt.Sprintf(":%d", clone.config.Port), grpc.WithInsecure())
+	if err != nil {
+		log.Printf("did not connect: %s", err)
+		return nil, err
+	}
+	clone.conn = conn
+	clone.managerClient = manager.NewManagerClient(conn)
+	clone.executorClient = exec.NewExecutorClient(conn)
+
+	return &clone, nil
+}
+
+func (sc *StrategiesClient) Shutdown() error {
+	if sc.conn != nil {
+		if err := sc.conn.Close(); err != nil {
+			log.Printf("Error closing client connection to strategies: %v", err)
+			return err
+		}
+		log.Println("Successful Shutdown of client connection to strategies")
+	}
+	return nil
+}
 
 func New(cfg *Config, kstats stats.Stats, logger *logger.Logger) (*StrategiesClient, func(), error) {
 

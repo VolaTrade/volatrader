@@ -13,8 +13,12 @@ jobs:
       - name: Granting private modules access
         run: |
           git config --global url."https://${{ secrets.GH_READ_ACCESS_KEY }}:x-oauth-basic@github.com/volatrade".insteadOf "https://github.com/volatrade"     
+
+      
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
+        env:
+          GOPRIVATE: github.com/volatrade
         with:
           # Optional: version of golangci-lint to use in form of v1.2 or v1.2.3 or `latest` to use the latest version
           version: v1.29

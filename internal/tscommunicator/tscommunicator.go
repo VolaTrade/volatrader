@@ -2,7 +2,6 @@
 package tscommunicator
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 
@@ -33,7 +32,7 @@ func New(id uuid.UUID, logger *logger.Logger,
 		mux:                 &sync.RWMutex{},
 		relayChannel:        relayChannel,
 		indicatorChannel:    svcChan,
-		indicatorSessionMap: make(map[string]map[string]map[string]chan models.IndicatorUpdate, 0),
+		indicatorSessionMap: make(map[string]map[string]map[string]chan models.IndicatorUpdate),
 	}
 
 }
@@ -60,7 +59,7 @@ func (com *VTTSCommunicator) WaitAndSlave(ctx context.Context) {
 					processChannel <- indUpdate
 				}
 			} else {
-				relayMessage.Error = errors.New(fmt.Sprintf("Could not find indicator %s", indUpdate.Indicator))
+				relayMessage.Error = fmt.Errorf(fmt.Sprintf("Could not find indicator %s", indUpdate.Indicator))
 			}
 			com.mux.RUnlock()
 			com.relayChannel <- relayMessage

@@ -57,8 +57,8 @@ func New(cfg *Config, logger *logger.Logger) (*VTStreamer, func()) {
 		config:            cfg,
 		commChannel:       commChannel,
 		relayChannel:      relayChannel,
-		deathMap:          make(map[string]chan bool, 0),
-		indicatorSessions: make(map[string]map[string]map[string]chan models.IndicatorUpdate, 0),
+		deathMap:          make(map[string]chan bool),
+		indicatorSessions: make(map[string]map[string]map[string]chan models.IndicatorUpdate),
 		commMap:           commMap,
 	}, end
 
@@ -70,10 +70,10 @@ func (vts *VTStreamer) AddSession(indicators []string, sessionID string,
 	vts.deathMap[sessionID] = deathChan
 	for _, indicator := range indicators {
 		if _, ok := vts.indicatorSessions[pair]; !ok {
-			vts.indicatorSessions[pair] = make(map[string]map[string]chan models.IndicatorUpdate, 0)
+			vts.indicatorSessions[pair] = make(map[string]map[string]chan models.IndicatorUpdate)
 		}
 		if _, ok := vts.indicatorSessions[indicator]; !ok {
-			vts.indicatorSessions[pair][indicator] = make(map[string]chan models.IndicatorUpdate, 0)
+			vts.indicatorSessions[pair][indicator] = make(map[string]chan models.IndicatorUpdate)
 		}
 		if _, ok := vts.indicatorSessions[indicator][sessionID]; !ok {
 			vts.indicatorSessions[pair][indicator][sessionID] = updateChan
@@ -89,9 +89,7 @@ func (svc *VTStreamer) DeleteTradeSession(sessionID string) {
 
 	for _, sessionProcMap := range svc.indicatorSessions {
 
-		if _, ok := sessionProcMap[sessionID]; ok {
-			delete(sessionProcMap, sessionID)
-		}
+		delete(sessionProcMap, sessionID)
 	}
 }
 

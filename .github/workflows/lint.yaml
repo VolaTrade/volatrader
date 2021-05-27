@@ -9,6 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - with:
+        persist-credentials: false
+
 
       - name: Granting private modules access
         run: |
